@@ -62,7 +62,14 @@ export default {
     clipboardDemo: 'Clipboard',
     i18n: 'I18n',
     externalLink: 'External Link',
-    profile: 'Profile'
+    profile: 'Profile',
+    商品管理: 'Product Management',
+    商品列表: 'Product List',
+    数据分析: 'Data Analysis',
+    销售分析: 'Sales Analysis',
+    达人分析: 'Influencer Analysis',
+    系统设置: 'System Settings',
+    菜单配置: 'Menu Configuration'
   },
   navbar: {
     dashboard: 'Dashboard',
