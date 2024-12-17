@@ -11,11 +11,11 @@
         <error-log class="errLog-container right-menu-item hover-effect" />
 
         <screenfull id="screenfull" class="right-menu-item hover-effect" /> -->
-        
+
         <!-- <el-tooltip :content="$t('navbar.size')" effect="dark" placement="bottom">
           <size-select id="size-select" class="right-menu-item hover-effect" />
         </el-tooltip> -->
-        
+
         <el-button
           class="right-menu-item hover-effect"
           type="text"
@@ -64,15 +64,15 @@
     <el-dialog title="添加菜单" :visible.sync="dialogVisible" width="30%">
       <el-form ref="menuForm" :model="menuForm" :rules="rules" label-width="80px">
         <el-form-item label="标题" prop="title">
-          <el-input v-model="menuForm.title" placeholder="请输入菜单标题"></el-input>
+          <el-input v-model="menuForm.title" placeholder="请输入菜单标题" />
         </el-form-item>
         <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="menuForm.sort" :min="1" :max="99" placeholder="请输入排序序号"></el-input-number>
+          <el-input-number v-model="menuForm.sort" :min="1" :max="99" placeholder="请输入排序序号" />
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitForm" :loading="loading">确 定</el-button>
+        <el-button type="primary" :loading="loading" @click="submitForm">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -144,7 +144,7 @@ export default {
       try {
         await this.$refs.menuForm.validate()
         this.loading = true
-        
+
         const response = await addMenuItem({
           title: this.menuForm.title,
           sort: this.menuForm.sort

@@ -66,8 +66,8 @@
             type="text"
             icon="el-icon-edit"
             class="edit-icon"
-            @click="startEdit(scope.row)"
             :class="{ 'editing': scope.row.editing }"
+            @click="startEdit(scope.row)"
           />
         </template>
       </el-table-column>
@@ -83,9 +83,9 @@
         </template>
       </el-table-column>
 
-      <el-table-column 
-        label="首次录入时间" 
-        min-width="170" 
+      <el-table-column
+        label="首次录入时间"
+        min-width="170"
         fixed
         sortable="custom"
         prop="createTime"
@@ -95,9 +95,9 @@
         </template>
       </el-table-column>
 
-      <el-table-column 
-        label="数据更新时间" 
-        min-width="170" 
+      <el-table-column
+        label="数据更新时间"
+        min-width="170"
         fixed
         sortable="custom"
         prop="updateTime"
@@ -107,9 +107,9 @@
         </template>
       </el-table-column>
 
-      <el-table-column 
-        label="更新销量" 
-        min-width="120" 
+      <el-table-column
+        label="更新销量"
+        min-width="120"
         fixed
         sortable="custom"
         prop="salesVolume"
@@ -171,9 +171,9 @@
         </template>
       </el-table-column>
 
-      <el-table-column 
-        label="上架时间" 
-        width="120" 
+      <el-table-column
+        label="上架时间"
+        width="120"
         align="center"
         sortable="custom"
         prop="listingDate"
@@ -183,17 +183,17 @@
         </template>
       </el-table-column>
 
-      <el-table-column 
-        prop="salesVolume" 
-        label="销量" 
-        width="80" 
+      <el-table-column
+        prop="salesVolume"
+        label="销量"
+        width="80"
         align="right"
         sortable="custom"
       />
 
-      <el-table-column 
-        label="平均销售价" 
-        width="130" 
+      <el-table-column
+        label="平均销售价"
+        width="130"
         align="right"
         sortable="custom"
         prop="averagePrice"
@@ -221,9 +221,9 @@
         :before-upload="beforeUpload"
         accept=".xlsx, .xls"
       >
-        <i class="el-icon-upload"></i>
+        <i class="el-icon-upload" />
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-        <div class="el-upload__tip" slot="tip">只能上传 excel 文件</div>
+        <div slot="tip" class="el-upload__tip">只能上传 excel 文件</div>
       </el-upload>
     </el-dialog>
   </div>
@@ -260,7 +260,7 @@ export default {
       },
       productManagerOptions: [], // 将从数据中提取
       filteredList: [], // 用于存储筛选后的数据
-      currentEditingRow: null, // 当前正在编辑的行
+      currentEditingRow: null // 当前正在编辑的行
     }
   },
   created() {
@@ -279,7 +279,7 @@ export default {
         this.list = response.data
         this.originalList = [...response.data]
         this.filteredList = [...response.data]
-        
+
         // 提取所有不重复的选品负责人
         this.productManagerOptions = [...new Set(
           this.list
@@ -338,7 +338,7 @@ export default {
 
       try {
         const response = await importProducts(formData)
-        
+
         if (response.code === 200) {
           this.$message.success('上传成功')
           this.uploadDialogVisible = false
@@ -354,15 +354,15 @@ export default {
     // 添加 handleFilter 方法
     handleFilter() {
       this.filteredList = this.originalList.filter(item => {
-        const matchProductManager = !this.filters.productManager || 
+        const matchProductManager = !this.filters.productManager ||
           item.productManager === this.filters.productManager
-        
-        const matchSelectionStatus = this.filters.selectionStatus === '' || 
+
+        const matchSelectionStatus = this.filters.selectionStatus === '' ||
           item.selectionStatus === this.filters.selectionStatus
 
         return matchProductManager && matchSelectionStatus
       })
-      
+
       this.list = this.filteredList
     },
     // 修改时间格式化方法
@@ -391,14 +391,10 @@ export default {
         if (['createTime', 'updateTime', 'listingDate'].includes(prop)) {
           valueA = new Date(a[prop] || 0).getTime()
           valueB = new Date(b[prop] || 0).getTime()
-        }
-        // 处理数字类型
-        else if (['salesVolume', 'averagePrice'].includes(prop)) {
+        } else if (['salesVolume', 'averagePrice'].includes(prop)) {
           valueA = parseFloat(a[prop] || 0)
           valueB = parseFloat(b[prop] || 0)
-        }
-        // 其他类型
-        else {
+        } else {
           valueA = a[prop]
           valueB = b[prop]
         }
@@ -417,7 +413,7 @@ export default {
       if (this.currentEditingRow && this.currentEditingRow !== row) {
         this.handleEdit(this.currentEditingRow)
       }
-      
+
       // 保存原始数据，用于取消编辑
       row.originalData = {
         productManager: row.productManager,

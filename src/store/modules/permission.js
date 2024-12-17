@@ -51,7 +51,7 @@ const actions = {
     try {
       // 等待动态路由初始化完成
       const asyncRoutesWithApi = await initRoutes()
-      
+
       let accessedRoutes
       if (roles.includes('admin')) {
         accessedRoutes = asyncRoutesWithApi || []
