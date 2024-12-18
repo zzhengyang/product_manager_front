@@ -58,35 +58,25 @@
       highlight-current-row
       @sort-change="handleSortChange"
       @row-click="handleRowClick"
+      :row-class-name="getRowClassName"
     >
-      <el-table-column label="序号" width="120" align="center" fixed>
+      <el-table-column label="序号" width="120" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.$index + 1 }}</span>
+          <span>{{ (pagination.page - 1) * pagination.limit + scope.$index + 1 }}</span>
           <el-button
             type="text"
             icon="el-icon-edit"
             class="edit-icon"
             :class="{ 'editing': scope.row.editing }"
-            @click="startEdit(scope.row)"
+            @click.stop="startEdit(scope.row, $event)"
           />
         </template>
       </el-table-column>
 
-      <el-table-column label="选品负责人" min-width="100" fixed>
-        <template slot-scope="scope">
-          <el-input
-            v-if="scope.row.editing"
-            v-model="scope.row.productManager"
-            size="small"
-          />
-          <span v-else>{{ scope.row.productManager }}</span>
-        </template>
-      </el-table-column>
-
+      <!-- 非固定列放在中间 -->
       <el-table-column
         label="首次录入时间"
         min-width="170"
-        fixed
         sortable="custom"
         prop="createTime"
       >
@@ -98,56 +88,11 @@
       <el-table-column
         label="数据更新时间"
         min-width="170"
-        fixed
         sortable="custom"
         prop="updateTime"
       >
         <template slot-scope="scope">
           {{ formatDate(scope.row.updateTime, true) }}
-        </template>
-      </el-table-column>
-
-      <el-table-column
-        label="更新销量"
-        min-width="120"
-        fixed
-        sortable="custom"
-        prop="salesVolume"
-      >
-        <template slot-scope="scope">
-          {{ scope.row.salesVolume }}
-        </template>
-      </el-table-column>
-
-      <el-table-column label="选品判断" min-width="140" fixed>
-        <template slot-scope="scope">
-          <el-select
-            v-if="scope.row.editing"
-            v-model="scope.row.selectionStatus"
-            size="small"
-          >
-            <el-option
-              v-for="(value, key) in selectionStatusMap"
-              :key="key"
-              :label="value.text"
-              :value="Number(key)"
-            />
-          </el-select>
-          <el-tag v-else :type="getSelectionStatusType(scope.row.selectionStatus)">
-            {{ getSelectionStatusText(scope.row.selectionStatus) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="备注" min-width="150" fixed>
-        <template slot-scope="scope">
-          <el-input
-            v-if="scope.row.editing"
-            v-model="scope.row.remarks"
-            type="textarea"
-            size="small"
-          />
-          <span v-else>{{ scope.row.remarks }}</span>
         </template>
       </el-table-column>
 
@@ -202,14 +147,87 @@
           {{ scope.row.averagePrice }}
         </template>
       </el-table-column>
-      <el-table-column prop="influencerCount" label="达人数量" width="80" align="right" />
 
-      <el-table-column label="达人出单率" width="100" align="right">
+      <el-table-column prop="influencerCount" label="达人数量" width="110" align="right" sortable="custom" />
+
+      <el-table-column label="达人出单率" width="120" align="right" sortable="custom" prop="influencerOrderRate">
         <template slot-scope="scope">
-          {{ scope.row.influencerOrderRate && scope.row.influencerOrderRate !== '-' ? scope.row.influencerOrderRate + '%' : '' }}
+          {{ scope.row.influencerOrderRate && scope.row.influencerOrderRate !== '-' ? scope.row.influencerOrderRate : '' }}
+        </template>
+      </el-table-column>
+
+      <!-- 固定在右侧的三列 -->
+      <el-table-column label="选品负责人" min-width="100" fixed="right">
+        <template slot-scope="scope">
+          <div :class="{ 'editing-row': scope.row.editing }">
+            <el-select
+              v-if="scope.row.editing"
+              v-model="scope.row.productManager"
+              size="small"
+              placeholder="请选择"
+            >
+              <el-option
+                v-for="item in productManagerOptions"
+                :key="item"
+                :label="item"
+                :value="item"
+              />
+            </el-select>
+            <span v-else>{{ scope.row.productManager }}</span>
+          </div>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="选品判断" min-width="140" fixed="right">
+        <template slot-scope="scope">
+          <div :class="{ 'editing-row': scope.row.editing }">
+            <el-select
+              v-if="scope.row.editing"
+              v-model="scope.row.selectionStatus"
+              size="small"
+            >
+              <el-option
+                v-for="(value, key) in selectionStatusMap"
+                :key="key"
+                :label="value.text"
+                :value="Number(key)"
+              />
+            </el-select>
+            <el-tag v-else :type="getSelectionStatusType(scope.row.selectionStatus)">
+              {{ getSelectionStatusText(scope.row.selectionStatus) }}
+            </el-tag>
+          </div>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="备注" min-width="150" fixed="right">
+        <template slot-scope="scope">
+          <div :class="{ 'editing-row': scope.row.editing }">
+            <el-input
+              v-if="scope.row.editing"
+              v-model="scope.row.remarks"
+              type="textarea"
+              size="small"
+            />
+            <span v-else>{{ scope.row.remarks }}</span>
+          </div>
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
+    <div class="pagination-container">
+      <el-pagination
+        background
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="pagination.page"
+        :page-sizes="[10, 20, 30, 50]"
+        :page-size="pagination.limit"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="pagination.total"
+      />
+    </div>
 
     <!-- 添加上传文件的对话框 -->
     <el-dialog title="上传Excel" :visible.sync="uploadDialogVisible" width="30%">
@@ -258,9 +276,25 @@ export default {
         productManager: '',
         selectionStatus: ''
       },
-      productManagerOptions: [], // 将从数据中提取
+      productManagerOptions: [
+        'Toby',
+        '张超',
+        '小五',
+        '三水',
+        '巧玲',
+        '刘韵',
+        '选品人A',
+        '选品人B',
+        '选品人C',
+        '选品人D'
+      ], // 固定的选品负责人选项
       filteredList: [], // 用于存储筛选后的数据
-      currentEditingRow: null // 当前正在编辑的行
+      currentEditingRow: null, // 当前正在编辑的行
+      pagination: {
+        total: 0,
+        page: 1,
+        limit: 20
+      }
     }
   },
   created() {
@@ -269,6 +303,14 @@ export default {
     this.tableId = pathParts[pathParts.length - 1]
     this.fetchData()
   },
+  mounted() {
+    // 添加全局点击事件监听器
+    document.addEventListener('click', this.handleGlobalClick)
+  },
+  beforeDestroy() {
+    // 移除全局点击事件监听器
+    document.removeEventListener('click', this.handleGlobalClick)
+  },
   methods: {
     async fetchData() {
       this.listLoading = true
@@ -276,16 +318,16 @@ export default {
         const pathParts = this.$route.path.split('/')
         const tableId = pathParts[pathParts.length - 1]
         const response = await getProductList(tableId)
-        this.list = response.data
-        this.originalList = [...response.data]
+        this.originalList = response.data
         this.filteredList = [...response.data]
-
-        // 提取所有不重复的选品负责人
-        this.productManagerOptions = [...new Set(
-          this.list
-            .map(item => item.productManager)
-            .filter(item => item) // 过滤掉空值
-        )]
+        
+        // 更新总数
+        this.pagination.total = this.filteredList.length
+        
+        // 计算当前页的数据
+        const start = (this.pagination.page - 1) * this.pagination.limit
+        const end = start + this.pagination.limit
+        this.list = this.filteredList.slice(start, end)
       } catch (error) {
         console.error('获取产品列表失败:', error)
       } finally {
@@ -335,8 +377,6 @@ export default {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('tableId', this.tableId)
-
-      try {
         const response = await importProducts(formData)
 
         if (response.code === 200) {
@@ -346,12 +386,8 @@ export default {
         } else {
           this.$message.error(response.message || '上传失败')
         }
-      } catch (error) {
-        console.error('上传失败:', error)
-        this.$message.error('上传失败，请重试')
-      }
     },
-    // 添加 handleFilter 方法
+    // 修改筛选方法，添加分页逻辑
     handleFilter() {
       this.filteredList = this.originalList.filter(item => {
         const matchProductManager = !this.filters.productManager ||
@@ -363,7 +399,24 @@ export default {
         return matchProductManager && matchSelectionStatus
       })
 
-      this.list = this.filteredList
+      // 更新总数
+      this.pagination.total = this.filteredList.length
+
+      // 计算当前页的数据
+      const start = (this.pagination.page - 1) * this.pagination.limit
+      const end = start + this.pagination.limit
+      this.list = this.filteredList.slice(start, end)
+    },
+    // 处理每页显示数量变化
+    handleSizeChange(val) {
+      this.pagination.limit = val
+      this.pagination.page = 1
+      this.handleFilter()
+    },
+    // 处理页码变化
+    handleCurrentChange(val) {
+      this.pagination.page = val
+      this.handleFilter()
     },
     // 修改时间格式化方法
     formatDate(date, showTime = false) {
@@ -380,35 +433,50 @@ export default {
     },
     handleSortChange({ prop, order }) {
       if (!order) {
-        this.list = [...this.originalList] // 重置为原始数据
-        return
+        this.filteredList = [...this.originalList]
+      } else {
+        this.filteredList.sort((a, b) => {
+          let valueA, valueB
+
+          // 处理日期类型
+          if (['createTime', 'updateTime', 'listingDate'].includes(prop)) {
+            valueA = new Date(a[prop] || 0).getTime()
+            valueB = new Date(b[prop] || 0).getTime()
+          } else if (['salesVolume', 'influencerCount'].includes(prop)) {
+            valueA = parseFloat(a[prop] || 0)
+            valueB = parseFloat(b[prop] || 0)
+          } else if (prop === 'averagePrice') {
+            // 处理平均销售价，移除货币符号和千分位分隔符
+            valueA = parseFloat((a[prop] || '0').toString().replace(/[$,]/g, '').replace(/[¥,]/g, ''))
+            valueB = parseFloat((b[prop] || '0').toString().replace(/[$,]/g, '').replace(/[¥,]/g, ''))
+          } else if (prop === 'influencerOrderRate') {
+            // 处理达人出单率，将百分比转换为数字
+            valueA = parseFloat((a[prop] || '0%').replace('%', ''))
+            valueB = parseFloat((b[prop] || '0%').replace('%', ''))
+          } else {
+            valueA = a[prop]
+            valueB = b[prop]
+          }
+
+          // 升序
+          if (order === 'ascending') {
+            return valueA > valueB ? 1 : -1
+          }
+          // 降序
+          return valueA < valueB ? 1 : -1
+        })
       }
 
-      this.list.sort((a, b) => {
-        let valueA, valueB
-
-        // 处理日期类型
-        if (['createTime', 'updateTime', 'listingDate'].includes(prop)) {
-          valueA = new Date(a[prop] || 0).getTime()
-          valueB = new Date(b[prop] || 0).getTime()
-        } else if (['salesVolume', 'averagePrice'].includes(prop)) {
-          valueA = parseFloat(a[prop] || 0)
-          valueB = parseFloat(b[prop] || 0)
-        } else {
-          valueA = a[prop]
-          valueB = b[prop]
-        }
-
-        // 升序
-        if (order === 'ascending') {
-          return valueA > valueB ? 1 : -1
-        }
-        // 降序
-        return valueA < valueB ? 1 : -1
-      })
+      // 更新分页数据
+      const start = (this.pagination.page - 1) * this.pagination.limit
+      const end = start + this.pagination.limit
+      this.list = this.filteredList.slice(start, end)
     },
     // 开始编辑
-    startEdit(row) {
+    startEdit(row, event) {
+      // 阻止事件冒泡，防止触发全局点击事件
+      event.stopPropagation()
+
       // 如果有正在编辑的行，先保存它
       if (this.currentEditingRow && this.currentEditingRow !== row) {
         this.handleEdit(this.currentEditingRow)
@@ -455,6 +523,26 @@ export default {
         console.error('更新失败:', error)
         this.$message.error('更新失败，请重试')
       }
+    },
+
+    handleGlobalClick(event) {
+      // 如果有正在编辑的行，且点击的不是编辑区域内的元素
+      if (this.currentEditingRow) {
+        // 检查点击是否在当前编辑行内
+        const currentRow = event.target.closest('tr')
+        const editingRow = this.$el.querySelector('tr.el-table__row.editing-row')
+        
+        // 如果点击的是编辑区域或当前编辑行，不触发保存
+        if (event.target.closest('.editing-row') || (currentRow && editingRow && currentRow === editingRow)) {
+          return
+        }
+        
+        this.handleEdit(this.currentEditingRow)
+      }
+    },
+
+    getRowClassName(row) {
+      return row.row.editing ? 'editing-row' : ''
     }
   }
 }
@@ -509,5 +597,9 @@ export default {
 .filter-item {
   display: inline-block;
   vertical-align: middle;
+}
+.pagination-container {
+  padding: 32px 16px;
+  text-align: right;
 }
 </style>
