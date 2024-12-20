@@ -380,7 +380,7 @@ export default {
         const response = await importProducts(formData)
 
         if (response.code === 200) {
-          this.$message.success('上传成功')
+          this.$message.success(response.data)
           this.uploadDialogVisible = false
           this.fetchData() // 刷新数据
         } else {
@@ -473,13 +473,18 @@ export default {
       this.list = this.filteredList.slice(start, end)
     },
     // 开始编辑
-    startEdit(row, event) {
+    async startEdit(row, event) {
       // 阻止事件冒泡，防止触发全局点击事件
       event.stopPropagation()
 
       // 如果有正在编辑的行，先保存它
       if (this.currentEditingRow && this.currentEditingRow !== row) {
-        this.handleEdit(this.currentEditingRow)
+        try {
+          await this.handleEdit(this.currentEditingRow)
+        } catch (error) {
+          // 如果保存失败，不允许切换到新行
+          return
+        }
       }
 
       // 保存原始数据，用于取消编辑
